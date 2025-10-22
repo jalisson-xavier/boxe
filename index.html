@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perfil do Pugilista - CBBoxe Analyzer</title>
+    <!-- Carrega Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuração do Google Font: Inter (Robusto e Moderno) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* Define a fonte Inter como padrão */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1a; /* Preto/Cinza Escuro */
+            color: #f7f7f7; /* Branco Suave */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+
+        /* Cores Personalizadas (Laranja em Destaque) */
+        .color-primary {
+            color: #FF6600; /* Laranja Vívido */
+        }
+        .bg-primary {
+            background-color: #FF6600;
+        }
+        .bg-card {
+            background-color: #2c2c2c; /* Cinza Escuro para Cartões */
+        }
+        
+        /* Estilo para inputs e selects - Fundo BRANCO e Texto PRETO para alto contraste */
+        .input-style {
+            /* Definido como text-black */
+            @apply w-full p-3 bg-white text-black border-2 border-transparent focus:border-orange-500 rounded-lg transition duration-300;
+        }
+
+        /* CORREÇÃO PARA GARANTIR TEXTO PRETO EM CAMPOS NUMÉRICOS E SELECTS */
+        input[type="number"], select {
+            color: #000000 !important; /* Força o texto para preto */
+        }
+        /* CORREÇÃO PARA O TEXTO DO PLACEHOLDER ficar visível */
+        ::placeholder {
+            color: #4b5563; /* Cor cinza escura para o placeholder */
+        }
+
+
+        /* Estilo para o botão de destaque */
+        .btn-submit {
+            @apply w-full py-3 mt-6 text-lg font-extrabold text-white bg-primary hover:bg-orange-700 transition duration-300 rounded-lg shadow-lg shadow-orange-700/50;
+        }
+
+        /* Estilo para os resultados gerados */
+        .result-box {
+            @apply p-6 mt-6 bg-card rounded-xl shadow-2xl;
+        }
+        .result-label {
+            @apply text-sm font-light text-gray-400 uppercase tracking-widest;
+        }
+        .result-value {
+            @apply text-xl md:text-2xl font-black color-primary leading-tight;
+        }
+    </style>
+</head>
+<body>
+    <div class="w-full max-w-lg mx-4">
+        
+        <!-- HEADER / TÍTULO -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl md:text-5xl font-black uppercase tracking-wide color-primary">
+                CBBoxe Fighter Profile
+            </h1>
+            <p class="text-lg text-gray-400 mt-2">Gere seu Apelido, Luva e Categoria Oficial</p>
+        </header>
+
+        <!-- FORMULÁRIO DE INPUT -->
+        <div class="bg-card p-6 md:p-8 rounded-2xl shadow-xl">
+            <form id="fighterForm" class="space-y-4">
+                
+                <div>
+                    <label for="name" class="block mb-1 text-sm font-medium">Nome Completo</label>
+                    <input type="text" id="name" name="name" required class="input-style" placeholder="Seu nome no ringue">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="age" class="block mb-1 text-sm font-medium">Idade</label>
+                        <input type="number" id="age" name="age" required min="10" max="99" class="input-style" placeholder="Idade">
+                    </div>
+                    <div>
+                        <label for="sex" class="block mb-1 text-sm font-medium">Sexo</label>
+                        <select id="sex" name="sex" required class="input-style">
+                            <option value="">Selecione</option>
+                            <option value="Masculino">Masculino</option>
+                            <option value="Feminino">Feminino</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="weight" class="block mb-1 text-sm font-medium">Peso (kg)</label>
+                        <input type="number" id="weight" name="weight" required min="30" max="200" step="0.1" class="input-style" placeholder="Ex: 75.5">
+                    </div>
+                    <div>
+                        <label for="height" class="block mb-1 text-sm font-medium">Altura (cm)</label>
+                        <input type="number" id="height" name="height" required min="100" max="250" class="input-style" placeholder="Ex: 178">
+                    </div>
+                </div>
+
+                <!-- CAMPOS DE EMAIL E TELEFONE REMOVIDOS -->
+                
+                <button type="submit" class="btn-submit">
+                    GERAR PERFIL DE LUTA
+                </button>
+            </form>
+            
+            <!-- Mensagem de Validação -->
+            <div id="validationMessage" class="mt-4 text-center text-red-500 font-semibold hidden">
+                Por favor, preencha todos os campos obrigatórios.
+            </div>
+        </div>
+
+        <!-- SEÇÃO DE RESULTADOS -->
+        <div id="resultsSection" class="result-box hidden">
+            <h2 class="text-3xl font-black mb-6 text-center">Seu Perfil de Pugilista</h2>
+            
+            <!-- RESULTADOS CHAVE (Apelido, Luva, Categoria) -->
+            <div class="space-y-4 mb-8">
+                <div class="bg-gray-800 p-4 rounded-lg shadow-inner">
+                    <p class="result-label">Apelido no Ringue</p>
+                    <p id="resultNickname" class="text-3xl font-black text-white leading-none"></p>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-inner">
+                        <p class="result-label">Luva de Treino (OZ)</p>
+                        <p id="resultGloves" class="result-value"></p>
+                    </div>
+                    <div class="bg-gray-800 p-4 rounded-lg shadow-inner">
+                        <p class="result-label">Categoria CBBoxe</p>
+                        <p id="resultCategory" class="result-value"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEÇÃO DE CONVITE RILLION GRACIE -->
+            <div id="invitationSection" class="mt-8 pt-4 border-t border-gray-700 text-center">
+                <h3 class="text-xl font-bold color-primary mb-3">
+                    Pronto para o Próximo Nível?
+                </h3>
+                <p class="text-gray-400 mb-4">
+                    Transforme seu perfil em realidade. Venha aprender Boxe na Rilion Gracie - Pampulha.
+                </p>
+                
+                <!-- Logo da Rillion Gracie - CORRIGIDO (Referenciando o arquivo .jpg que você enviou) -->
+                <a href="https://www.instagram.com/riliongracie.pampulha/" target="_blank" class="inline-block hover:opacity-80 transition duration-300">
+                    <img src="Rilion logo.jpg" alt="Logo da Rillion Gracie Jiu-Jitsu" class="h-24 w-auto mx-auto mb-2" 
+                         onerror="this.onerror=null; this.src='https://placehold.co/96x96/FF6600/ffffff?text=RG';">
+                </a>
+                
+                <p class="text-sm text-gray-500">
+                    Rilion Gracie - Unindo Tradição e Força no Ringue.
+                </p>
+            </div>
+            <!-- FIM DA SEÇÃO DE CONVITE -->
+            
+            <!-- MENSAGEM DE SUCESSO DO SALVAMENTO -->
+            <div id="saveMessage" class="hidden mt-4 p-3 bg-green-900/50 text-green-300 rounded-lg text-center font-medium">
+                Perfil salvo com sucesso!
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-xs mt-10 pb-10">
+            CBBoxe Analyzer | Desenvolvido com HTML, Tailwind CSS e JavaScript.
+        </footer>
+    </div>
+
+    <!-- Firebase Imports (APIs de Armazenamento e Autenticação) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, addDoc, setDoc, setLogLevel } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Variáveis globais de ambiente (MANDATÓRIO USAR)
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Configuração e Inicialização do Firebase
+        let db, auth, userId = null;
+        let isAuthReady = false;
+
+        if (Object.keys(firebaseConfig).length > 0) {
+            setLogLevel('Debug'); // Para debug no console
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            // Autenticação
+            onAuthStateChanged(auth, async (user) => {
+                if (!user) {
+                    // Tenta autenticar anonimamente ou com token, se disponível
+                    try {
+                        if (initialAuthToken) {
+                            await signInWithCustomToken(auth, initialAuthToken);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (error) {
+                        console.error("Erro na autenticação Firebase:", error);
+                    }
+                }
+                // Define o userId (o 'uid' do usuário logado ou um ID aleatório se a autenticação falhar)
+                userId = auth.currentUser?.uid || crypto.randomUUID();
+                isAuthReady = true;
+                console.log("Firebase e Autenticação prontos. User ID:", userId);
+
+                // Conecta a função de salvamento ao formulário após a autenticação
+                setupFormListener();
+            });
+        } else {
+            console.warn("Firebase Configuração não encontrada. O armazenamento de dados será desabilitado.");
+            setupFormListener(); // Continua sem salvamento
+        }
+
+        // Função para salvar o perfil no Firestore
+        async function saveProfile(profileData) {
+            if (!db || !isAuthReady) {
+                console.error("Firestore não está pronto para salvar.");
+                return;
+            }
+
+            try {
+                // Caminho para a coleção de perfis públicos
+                // /artifacts/{appId}/public/data/fighter_profiles
+                const profilesCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'fighter_profiles');
+                
+                // Adiciona o userId e o timestamp ao perfil
+                const dataToSave = {
+                    ...profileData,
+                    userId: userId, // ID do usuário que gerou o perfil
+                    createdAt: new Date().toISOString()
+                };
+
+                // Salva o documento no Firestore
+                await addDoc(profilesCollectionRef, dataToSave);
+                
+                console.log("Perfil salvo com sucesso!");
+                // Exibe a mensagem de sucesso
+                const saveMessage = document.getElementById('saveMessage');
+                saveMessage.classList.remove('hidden');
+                setTimeout(() => saveMessage.classList.add('hidden'), 5000);
+
+            } catch (e) {
+                console.error("Erro ao adicionar documento: ", e);
+                // Exibe uma mensagem de erro
+                const saveMessage = document.getElementById('saveMessage');
+                saveMessage.textContent = "Erro ao salvar perfil. Tente novamente.";
+                saveMessage.classList.remove('hidden');
+                saveMessage.classList.remove('bg-green-900/50');
+                saveMessage.classList.add('bg-red-900/50', 'text-red-300');
+                setTimeout(() => saveMessage.classList.add('hidden'), 5000);
+            }
+        }
+
+        // Função principal do formulário
+        function setupFormListener() {
+            const fighterForm = document.getElementById('fighterForm');
+            
+            fighterForm.addEventListener('submit', async function(event) {
+                event.preventDefault(); 
+    
+                if (!fighterForm.checkValidity()) {
+                    validationMessage.classList.remove('hidden');
+                    resultsSection.classList.add('hidden');
+                    return;
+                }
+                validationMessage.classList.add('hidden');
+    
+                const formData = new FormData(fighterForm);
+                const name = formData.get('name').trim();
+                const weight = parseFloat(formData.get('weight'));
+                const height = parseInt(formData.get('height'));
+                const age = parseInt(formData.get('age'));
+                const sex = formData.get('sex');
+                
+                // Geração dos Resultados
+                const nickname = generateNickname(name);
+                const gloveSize = getGloveSize(weight);
+                const weightCategory = getWeightCategory(weight, sex);
+    
+                // Exibição dos Resultados Chave
+                resultNickname.textContent = nickname;
+                resultGloves.textContent = gloveSize;
+                resultCategory.textContent = weightCategory;
+    
+                // Revela a seção de resultados e rola para ela
+                resultsSection.classList.remove('hidden');
+                resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                // DADOS A SEREM SALVOS
+                const profileData = {
+                    name,
+                    age,
+                    sex,
+                    weight,
+                    height,
+                    nickname,
+                    gloveSize,
+                    weightCategory
+                };
+
+                // Tenta salvar no Firestore
+                if (db && isAuthReady) {
+                    await saveProfile(profileData);
+                } else {
+                    console.log("Dados do perfil gerado, mas não salvos: ", profileData);
+                }
+            });
+        }
+        
+        // As funções utilitárias precisam ser globais para serem acessadas pelo listener do módulo.
+        // Ou você as coloca dentro do módulo, o que farei abaixo.
+
+        // Variáveis globais de resultado (mantidas fora do setup para serem acessíveis após a inicialização)
+        const resultsSection = document.getElementById('resultsSection');
+        const validationMessage = document.getElementById('validationMessage');
+        const resultNickname = document.getElementById('resultNickname');
+        const resultGloves = document.getElementById('resultGloves');
+        const resultCategory = document.getElementById('resultCategory');
+        const nicknameParts = {
+            prefixos: [
+                'O Furacão', 'A Pantera', 'O Fantasma', 'A Rocha', 'O Vingador', 
+                'O Predador', 'A Fúria', 'O Destruidor', 'O Martelo', 'A Cobra',
+                'O Doutor', 'O Místico', 'A Lenda', 'O General', 'A Flecha'
+            ],
+            sufixos: [
+                'de Ouro', 'do Ringue', 'de Aço', 'de Brasília', 'de Ferro', 
+                'Relâmpago', 'Sombrio', 'Mortal', 'Imbatível', 'Silencioso',
+                'Branco', 'Negro', 'Implacável', 'Primeiro', 'Veloz'
+            ]
+        };
+        
+        // Função utilitária para pegar um item aleatório de um array
+        function getRandomItem(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Função para gerar Apelido Criativo
+        function generateNickname(name) {
+            const firstName = name.split(' ')[0];
+            const prefix = getRandomItem(nicknameParts.prefixos);
+            const suffix = getRandomItem(nicknameParts.sufixos);
+            
+            const nicknameOptions = [
+                `${prefix} ${suffix}`,
+                `${prefix} ${firstName}`,
+                `${firstName}, ${prefix} ${suffix.toLowerCase()}`
+            ];
+
+            return getRandomItem(nicknameOptions);
+        }
+
+        // Função para determinar o Tamanho da Luva (OZ)
+        function getGloveSize(weight) {
+            if (weight < 45) return '8 OZ';
+            if (weight <= 68) return '10 - 12 OZ';
+            if (weight <= 80) return '14 OZ';
+            if (weight <= 95) return '16 OZ';
+            return '18 OZ+';
+        }
+
+        // Função para determinar a Categoria de Peso CBBoxe (Amador/Olímpico)
+        function getWeightCategory(weight, sex) {
+            if (sex === 'Masculino') {
+                if (weight <= 48) return 'Peso-Mosca Ligeiro (Light Fly)';
+                if (weight <= 51) return 'Peso-Mosca (Flyweight)';
+                if (weight <= 54) return 'Peso-Galo (Bantamweight)';
+                if (weight <= 57) return 'Peso-Pena (Featherweight)';
+                if (weight <= 60) return 'Peso-Leve (Lightweight)';
+                if (weight <= 63.5) return 'Peso-Meio-Médio Ligeiro (Light Welterweight)';
+                if (weight <= 67) return 'Peso-Meio-Médio (Welterweight)';
+                if (weight <= 71) return 'Peso-Médio Ligeiro (Light Middleweight)';
+                if (weight <= 75) return 'Peso-Médio (Middleweight)';
+                if (weight <= 80) return 'Peso-Meio-Pesado (Light Heavyweight)';
+                if (weight <= 86) return 'Peso-Cruzador (Cruiserweight)';
+                if (weight <= 92) return 'Peso-Pesado (Heavyweight)';
+                return 'Peso-Super-Pesado (Super Heavyweight)';
+            } else if (sex === 'Feminino') {
+                if (weight <= 48) return 'Peso-Mosca Ligeiro (Light Fly)';
+                if (weight <= 50) return 'Peso-Mosca (Flyweight)';
+                if (weight <= 52) return 'Peso-Galo (Bantamweight)';
+                if (weight <= 54) return 'Peso-Pena (Featherweight)';
+                if (weight <= 57) return 'Peso-Leve (Lightweight)';
+                if (weight <= 60) return 'Peso-Meio-Médio Ligeiro (Light Welterweight)';
+                if (weight <= 63) return 'Peso-Meio-Médio (Welterweight)';
+                if (weight <= 66) return 'Peso-Médio Ligeiro (Light Middleweight)';
+                if (weight <= 70) return 'Peso-Médio (Middleweight)';
+                if (weight <= 75) return 'Peso-Meio-Pesado (Light Heavyweight)';
+                if (weight <= 81) return 'Peso-Pesado (Heavyweight)';
+                return 'Peso-Super-Pesado (Super Heavyweight)';
+            }
+            return 'Categoria Indefinida';
+        }
+    </script>
+</body>
+</html>
